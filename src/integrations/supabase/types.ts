@@ -14,7 +14,153 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      admin_settings: {
+        Row: {
+          created_at: string
+          id: string
+          setting_key: string
+          setting_value: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          setting_key: string
+          setting_value: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          setting_key?: string
+          setting_value?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      contact_submissions: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          is_read: boolean | null
+          message: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          is_read?: boolean | null
+          message: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          created_at: string
+          data_link: string | null
+          display_order: number | null
+          full_description: string | null
+          github_link: string | null
+          id: string
+          images: string[] | null
+          is_featured: boolean | null
+          is_published: boolean | null
+          live_link: string | null
+          short_description: string
+          technologies: string[] | null
+          thumbnail: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data_link?: string | null
+          display_order?: number | null
+          full_description?: string | null
+          github_link?: string | null
+          id?: string
+          images?: string[] | null
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          live_link?: string | null
+          short_description: string
+          technologies?: string[] | null
+          thumbnail?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data_link?: string | null
+          display_order?: number | null
+          full_description?: string | null
+          github_link?: string | null
+          id?: string
+          images?: string[] | null
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          live_link?: string | null
+          short_description?: string
+          technologies?: string[] | null
+          thumbnail?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      publications: {
+        Row: {
+          authors: string[] | null
+          created_at: string
+          description: string | null
+          doi: string | null
+          id: string
+          is_published: boolean | null
+          link: string | null
+          publication_date: string | null
+          publisher: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          authors?: string[] | null
+          created_at?: string
+          description?: string | null
+          doi?: string | null
+          id?: string
+          is_published?: boolean | null
+          link?: string | null
+          publication_date?: string | null
+          publisher?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          authors?: string[] | null
+          created_at?: string
+          description?: string | null
+          doi?: string | null
+          id?: string
+          is_published?: boolean | null
+          link?: string | null
+          publication_date?: string | null
+          publisher?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
