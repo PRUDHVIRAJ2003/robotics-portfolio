@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import AnimateOnScroll from "@/components/AnimateOnScroll";
 import { supabase } from "@/integrations/supabase/client";
 import { BookOpen, ExternalLink, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -50,60 +51,61 @@ const PublicationsSection = () => {
       <div className="absolute inset-0 circuit-pattern opacity-10" />
       
       <div className="container mx-auto px-4 relative">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            <span className="text-gradient-primary">Publications</span>
-          </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Academic research and publications
-          </p>
-        </div>
+        <AnimateOnScroll animation="fade-up">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              <span className="text-gradient-primary">Publications</span>
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Academic research and publications
+            </p>
+          </div>
+        </AnimateOnScroll>
 
         <div className="max-w-4xl mx-auto space-y-6">
-          {publications.map((pub) => (
-            <div
-              key={pub.id}
-              className="bg-card rounded-xl p-6 shadow-card hover:shadow-elevated transition-all duration-300 border border-border hover:border-primary/30 group"
-            >
-              <div className="flex items-start gap-4">
-                <div className="w-14 h-14 rounded-lg gradient-primary flex items-center justify-center flex-shrink-0 group-hover:shadow-glow transition-all duration-300">
-                  <BookOpen className="w-7 h-7 text-primary-foreground" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">
-                    {pub.title}
-                  </h3>
-                  {pub.description && (
-                    <p className="text-muted-foreground mb-3">{pub.description}</p>
-                  )}
-                  <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
-                    {pub.publisher && (
-                      <span className="flex items-center gap-1">
-                        <BookOpen className="w-4 h-4" />
-                        {pub.publisher}
-                      </span>
+          {publications.map((pub, index) => (
+            <AnimateOnScroll key={pub.id} animation="fade-up" delay={index * 150}>
+              <div className="bg-card rounded-xl p-6 shadow-card hover:shadow-elevated transition-all duration-300 border border-border hover:border-primary/30 group">
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 rounded-lg gradient-primary flex items-center justify-center flex-shrink-0 group-hover:shadow-glow transition-all duration-300">
+                    <BookOpen className="w-7 h-7 text-primary-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">
+                      {pub.title}
+                    </h3>
+                    {pub.description && (
+                      <p className="text-muted-foreground mb-3">{pub.description}</p>
                     )}
-                    {pub.publication_date && (
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        {new Date(pub.publication_date).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "long",
-                        })}
-                      </span>
+                    <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
+                      {pub.publisher && (
+                        <span className="flex items-center gap-1">
+                          <BookOpen className="w-4 h-4" />
+                          {pub.publisher}
+                        </span>
+                      )}
+                      {pub.publication_date && (
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          {new Date(pub.publication_date).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                          })}
+                        </span>
+                      )}
+                    </div>
+                    {pub.link && (
+                      <Button variant="outline" size="sm" asChild>
+                        <a href={pub.link} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="w-4 h-4" />
+                          View Publication
+                        </a>
+                      </Button>
                     )}
                   </div>
-                  {pub.link && (
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={pub.link} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="w-4 h-4" />
-                        View Publication
-                      </a>
-                    </Button>
-                  )}
                 </div>
               </div>
-            </div>
+            </AnimateOnScroll>
           ))}
 
           {publications.length === 0 && (

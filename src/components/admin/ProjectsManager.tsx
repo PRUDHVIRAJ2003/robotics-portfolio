@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import RichTextEditor from "./RichTextEditor";
 import ImageUpload from "./ImageUpload";
-import { Plus, Edit, Trash2, ArrowLeft, Save, X } from "lucide-react";
+import { Plus, Edit, Trash2, Save, X, Sparkles, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Project {
@@ -29,6 +29,7 @@ const ProjectsManager = () => {
   const [loading, setLoading] = useState(true);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [generatingThumbnails, setGeneratingThumbnails] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
 
   const emptyProject: Omit<Project, "id"> = {
@@ -93,6 +94,49 @@ const ProjectsManager = () => {
     setFormData({ ...formData, technologies: formData.technologies.filter((t) => t !== tech) });
   };
 
+  const generateThumbnail = async (projectId: string, projectTitle: string) => {
+    setGeneratingThumbnails((prev) => ({ ...prev, [projectId]: true }));
+    
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-thumbnail`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ projectId, projectTitle }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to generate thumbnail");
+      }
+
+      toast({ title: "Success", description: "Thumbnail generated!" });
+      fetchProjects();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to generate thumbnail",
+        variant: "destructive",
+      });
+    } finally {
+      setGeneratingThumbnails((prev) => ({ ...prev, [projectId]: false }));
+    }
+  };
+
+  const generateAllThumbnails = async () => {
+    const projectsWithoutThumbnails = projects.filter((p) => !p.thumbnail);
+    
+    for (const project of projectsWithoutThumbnails) {
+      await generateThumbnail(project.id, project.title);
+    }
+  };
+
   const handleSave = async () => {
     if (!formData.title || !formData.short_description) {
       toast({ title: "Error", description: "Title and description are required", variant: "destructive" });
@@ -141,28 +185,54 @@ const ProjectsManager = () => {
 
   if (loading) return <div className="flex justify-center py-8"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>;
 
+  const projectsWithoutThumbnails = projects.filter((p) => !p.thumbnail).length;
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <h2 className="text-2xl font-bold">Manage Projects</h2>
-        <Button onClick={openCreateDialog}><Plus className="w-4 h-4" />Add Project</Button>
+        <div className="flex gap-2">
+          {projectsWithoutThumbnails > 0 && (
+            <Button variant="outline" onClick={generateAllThumbnails}>
+              <Sparkles className="w-4 h-4" />
+              Generate All Thumbnails ({projectsWithoutThumbnails})
+            </Button>
+          )}
+          <Button onClick={openCreateDialog}><Plus className="w-4 h-4" />Add Project</Button>
+        </div>
       </div>
 
       <div className="grid gap-4">
         {projects.map((project) => (
           <div key={project.id} className="bg-card rounded-lg p-4 border border-border flex items-center gap-4">
-            {project.thumbnail && (
-              <img src={project.thumbnail} alt="" className="w-20 h-20 rounded-lg object-cover" />
-            )}
-            <div className="flex-1">
-              <h3 className="font-bold">{project.title}</h3>
+            <div className="w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+              {project.thumbnail ? (
+                <img src={project.thumbnail} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                  <Sparkles className="w-6 h-6" />
+                </div>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold truncate">{project.title}</h3>
               <p className="text-sm text-muted-foreground line-clamp-1">{project.short_description}</p>
               <div className="flex gap-2 mt-2">
                 {project.is_featured && <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">Featured</span>}
                 {!project.is_published && <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">Draft</span>}
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-shrink-0">
+              {!project.thumbnail && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => generateThumbnail(project.id, project.title)}
+                  disabled={generatingThumbnails[project.id]}
+                >
+                  {generatingThumbnails[project.id] ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                </Button>
+              )}
               <Button variant="ghost" size="icon" onClick={() => openEditDialog(project)}><Edit className="w-4 h-4" /></Button>
               <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(project.id)}><Trash2 className="w-4 h-4" /></Button>
             </div>

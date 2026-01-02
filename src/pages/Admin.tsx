@@ -9,9 +9,10 @@ import ProjectsManager from "@/components/admin/ProjectsManager";
 import PublicationsManager from "@/components/admin/PublicationsManager";
 import MessagesManager from "@/components/admin/MessagesManager";
 import SettingsManager from "@/components/admin/SettingsManager";
-import { Lock, LogOut, FolderOpen, BookOpen, Mail, Settings, Home, LayoutDashboard } from "lucide-react";
+import ResumeManager from "@/components/admin/ResumeManager";
+import { Lock, LogOut, FolderOpen, BookOpen, Mail, Settings, Home, LayoutDashboard, FileText } from "lucide-react";
 
-type Tab = "dashboard" | "projects" | "publications" | "messages" | "settings";
+type Tab = "dashboard" | "projects" | "publications" | "messages" | "resume" | "settings";
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -94,13 +95,14 @@ const Admin = () => {
     { id: "projects" as Tab, label: "Projects", icon: FolderOpen, count: stats.projects },
     { id: "publications" as Tab, label: "Publications", icon: BookOpen, count: stats.publications },
     { id: "messages" as Tab, label: "Messages", icon: Mail, count: stats.unread },
+    { id: "resume" as Tab, label: "Resume", icon: FileText },
     { id: "settings" as Tab, label: "Settings", icon: Settings },
   ];
 
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-card border-r border-border p-4 flex flex-col">
+      <aside className="w-64 bg-card border-r border-border p-4 flex flex-col flex-shrink-0">
         <div className="flex items-center gap-2 mb-8">
           <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center shadow-glow">
             <span className="text-primary-foreground font-bold">PR</span>
@@ -175,6 +177,7 @@ const Admin = () => {
         {activeTab === "projects" && <ProjectsManager />}
         {activeTab === "publications" && <PublicationsManager />}
         {activeTab === "messages" && <MessagesManager />}
+        {activeTab === "resume" && <ResumeManager />}
         {activeTab === "settings" && <SettingsManager />}
       </main>
     </div>
