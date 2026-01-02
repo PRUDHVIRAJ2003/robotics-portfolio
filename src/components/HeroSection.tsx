@@ -1,8 +1,23 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Download, Github, Linkedin, Mail } from "lucide-react";
 import profilePhoto from "@/assets/photo.png";
 
 const HeroSection = () => {
+  const [resumeUrl, setResumeUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchResume = async () => {
+      const { data } = await supabase.storage.from("resume").list();
+      if (data && data.length > 0) {
+        const { data: urlData } = supabase.storage.from("resume").getPublicUrl(data[0].name);
+        setResumeUrl(urlData.publicUrl);
+      }
+    };
+    fetchResume();
+  }, []);
+
   return (
     <section
       id="home"
@@ -43,7 +58,7 @@ const HeroSection = () => {
           {/* Content */}
           <div className="text-center lg:text-left animate-slide-up" style={{ animationDelay: "0.2s" }}>
             <p className="text-primary font-mono text-sm mb-2 tracking-widest uppercase">
-              Hello, I'm
+              Hello, I am
             </p>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
               <span className="text-card-foreground">Prudhvi Raj</span>
@@ -62,7 +77,7 @@ const HeroSection = () => {
             {/* CTA Buttons */}
             <div className="flex flex-wrap gap-4 justify-center lg:justify-start mb-8">
               <Button variant="hero" size="xl" asChild>
-                <a href="/resume.pdf" download>
+                <a href={resumeUrl || "#"} download target="_blank" rel="noopener noreferrer">
                   <Download className="w-5 h-5" />
                   Download Resume
                 </a>
