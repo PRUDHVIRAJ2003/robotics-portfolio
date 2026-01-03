@@ -3,7 +3,9 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 import ThemeToggle from "@/components/ThemeToggle";
 import ProjectsManager from "@/components/admin/ProjectsManager";
 import PublicationsManager from "@/components/admin/PublicationsManager";
@@ -15,24 +17,24 @@ import EducationManager from "@/components/admin/EducationManager";
 import ExperiencesManager from "@/components/admin/ExperiencesManager";
 import CertificationsManager from "@/components/admin/CertificationsManager";
 import AchievementsManager from "@/components/admin/AchievementsManager";
-import { Lock, LogOut, FolderOpen, BookOpen, Mail, Settings, Home, LayoutDashboard, FileText, Users, GraduationCap, Briefcase, Award, Trophy } from "lucide-react";
+import { Lock, LogOut, FolderOpen, BookOpen, Mail, Settings, Home, LayoutDashboard, FileText, Users, GraduationCap, Briefcase, Award, Trophy, Loader2, ShieldAlert } from "lucide-react";
 
 type Tab = "dashboard" | "projects" | "publications" | "messages" | "resume" | "subscribers" | "settings" | "education" | "experiences" | "certifications" | "achievements";
 
 const Admin = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user, isAdmin, loading: authLoading, signIn, signOut } = useAdminAuth();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const [stats, setStats] = useState({ projects: 0, publications: 0, messages: 0, unread: 0, subscribers: 0, education: 0, experiences: 0, certifications: 0, achievements: 0 });
   const { toast } = useToast();
 
   useEffect(() => {
-    if (sessionStorage.getItem("admin_auth") === "true") {
-      setIsAuthenticated(true);
+    if (isAdmin) {
       fetchStats();
     }
-  }, []);
+  }, [isAdmin]);
 
   const fetchStats = async () => {
     const [projectsRes, pubsRes, msgsRes, subsRes, eduRes, expRes, certRes, achRes] = await Promise.all([
@@ -60,26 +62,40 @@ const Admin = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    const { data } = await supabase.from("admin_settings").select("setting_value").eq("setting_key", "admin_password").maybeSingle();
-    if (data?.setting_value === password) {
-      setIsAuthenticated(true);
-      sessionStorage.setItem("admin_auth", "true");
-      toast({ title: "Welcome!", description: "Successfully logged in" });
-      fetchStats();
-    } else {
-      toast({ title: "Error", description: "Invalid password", variant: "destructive" });
+    
+    if (!email.trim() || !password.trim()) {
+      toast({ title: "Error", description: "Please enter email and password", variant: "destructive" });
+      return;
     }
-    setLoading(false);
+
+    setLoginLoading(true);
+    const { error } = await signIn(email, password);
+    
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Welcome!", description: "Successfully logged in" });
+    }
+    setLoginLoading(false);
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem("admin_auth");
-    setIsAuthenticated(false);
+  const handleLogout = async () => {
+    await signOut();
     setActiveTab("dashboard");
+    toast({ title: "Logged out", description: "You have been logged out" });
   };
 
-  if (!isAuthenticated) {
+  // Loading state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen gradient-hero flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Not logged in - show login form
+  if (!user) {
     return (
       <div className="min-h-screen gradient-hero flex items-center justify-center p-4">
         <div className="absolute top-4 right-4"><ThemeToggle /></div>
@@ -89,16 +105,74 @@ const Admin = () => {
               <Lock className="w-8 h-8 text-primary-foreground" />
             </div>
             <h1 className="text-2xl font-bold">Admin Panel</h1>
-            <p className="text-muted-foreground text-sm">Enter password to continue</p>
+            <p className="text-muted-foreground text-sm">Sign in to manage your portfolio</p>
           </div>
           <form onSubmit={handleLogin} className="space-y-4">
-            <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-            <Button type="submit" variant="hero" className="w-full" disabled={loading}>
-              {loading ? "Verifying..." : "Login"}
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input 
+                id="email"
+                type="email" 
+                placeholder="admin@example.com" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input 
+                id="password"
+                type="password" 
+                placeholder="••••••••" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+              />
+            </div>
+            <Button type="submit" variant="hero" className="w-full" disabled={loginLoading}>
+              {loginLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                "Sign In"
+              )}
             </Button>
           </form>
           <div className="mt-4 text-center">
             <Link to="/" className="text-sm text-muted-foreground hover:text-primary">← Back to website</Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Logged in but not admin
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen gradient-hero flex items-center justify-center p-4">
+        <div className="absolute top-4 right-4"><ThemeToggle /></div>
+        <div className="bg-card rounded-xl p-8 shadow-elevated border border-border max-w-md w-full text-center">
+          <div className="w-16 h-16 mx-auto rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+            <ShieldAlert className="w-8 h-8 text-destructive" />
+          </div>
+          <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
+          <p className="text-muted-foreground mb-6">
+            You don't have admin privileges. Please contact the administrator if you believe this is an error.
+          </p>
+          <div className="space-y-2">
+            <Button variant="outline" className="w-full" onClick={handleLogout}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </Button>
+            <Link to="/" className="block">
+              <Button variant="ghost" className="w-full">
+                <Home className="w-4 h-4 mr-2" />
+                Back to Website
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
@@ -129,7 +203,7 @@ const Admin = () => {
           </div>
           <div>
             <h1 className="font-bold">Admin Panel</h1>
-            <p className="text-xs text-muted-foreground">Portfolio CMS</p>
+            <p className="text-xs text-muted-foreground truncate max-w-[140px]">{user.email}</p>
           </div>
         </div>
 
