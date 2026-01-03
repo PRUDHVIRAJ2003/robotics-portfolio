@@ -93,26 +93,35 @@ const Navbar = () => {
         </div>
 
         {/* Mobile Navigation */}
-        {isMobileMenuOpen && (
-          <div className="lg:hidden py-4 border-t border-border animate-fade-in">
-            <div className="flex flex-col gap-2">
-              {navItems.map((item) => (
+        <div
+          className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+            isMobileMenuOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+          }`}
+        >
+          <div className="py-4 border-t border-border">
+            <div className="flex flex-col gap-1">
+              {navItems.map((item, index) => (
                 <button
                   key={item.href}
                   onClick={() => scrollToSection(item.href)}
-                  className="px-4 py-3 text-left font-medium text-muted-foreground hover:text-primary hover:bg-muted/50 rounded-md transition-colors"
+                  className="px-4 py-3.5 text-left font-medium text-muted-foreground hover:text-primary hover:bg-muted/50 rounded-md transition-all duration-200"
+                  style={{
+                    animationDelay: isMobileMenuOpen ? `${index * 50}ms` : "0ms",
+                  }}
                 >
                   {item.label}
                 </button>
               ))}
-              <Link to="/projects" className="mt-2">
-                <Button variant="outline" className="w-full">
-                  All Projects
-                </Button>
-              </Link>
+              <div className="mt-3 px-4">
+                <Link to="/projects" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button variant="outline" className="w-full">
+                    All Projects
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </nav>
   );
