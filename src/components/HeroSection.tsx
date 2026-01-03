@@ -33,16 +33,16 @@ const HeroSection = () => {
       <div className="absolute bottom-40 left-1/4 w-4 h-4 bg-accent rounded-full animate-float opacity-40" style={{ animationDelay: "2s" }} />
       <div className="absolute bottom-20 right-1/3 w-2 h-2 bg-primary rounded-full animate-float opacity-60" style={{ animationDelay: "0.5s" }} />
 
-      <div className="container mx-auto px-4 py-20">
-        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-8 sm:gap-10 lg:gap-16 xl:gap-20 max-w-6xl mx-auto">
           {/* Photo with aura effect */}
-          <div className="relative animate-slide-up">
+          <div className="relative animate-slide-up flex-shrink-0">
             {/* Aura glow */}
             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary via-secondary to-accent blur-3xl opacity-50 scale-110 animate-pulse-glow" />
             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-secondary blur-2xl opacity-30 scale-125" />
             
             {/* Photo container */}
-            <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden border-4 border-primary/30 animate-float">
+            <div className="relative w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 lg:w-72 lg:h-72 xl:w-80 xl:h-80 rounded-full overflow-hidden border-4 border-primary/30 animate-float">
               <img
                 src={profilePhoto}
                 alt="Prudhvi Raj Chalapaka"
@@ -56,33 +56,33 @@ const HeroSection = () => {
           </div>
 
           {/* Content */}
-          <div className="text-center lg:text-left animate-slide-up" style={{ animationDelay: "0.2s" }}>
-            <p className="text-primary font-mono text-sm mb-2 tracking-widest uppercase">
+          <div className="text-center lg:text-left animate-slide-up flex-1 max-w-xl lg:max-w-none" style={{ animationDelay: "0.2s" }}>
+            <p className="text-primary font-mono text-xs sm:text-sm mb-2 tracking-widest uppercase">
               Hello, I am
             </p>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4">
               <span className="text-card-foreground">Prudhvi Raj</span>
               <br />
               <span className="text-gradient-primary">Chalapaka</span>
             </h1>
-            <h2 className="text-xl md:text-2xl text-muted-foreground mb-6">
+            <h2 className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-4 sm:mb-6">
               Robotics & Automation Engineer
             </h2>
-            <p className="text-muted-foreground max-w-xl mb-8 leading-relaxed">
+            <p className="text-muted-foreground text-sm sm:text-base max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-8 leading-relaxed px-2 sm:px-0">
               Ambitious engineer with a strong foundation in ROS/ROS2, Industrial Automation, 
               and autonomous navigation. Combining hands-on experience in simulation and 
               embedded systems to advance autonomy technologies.
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-wrap gap-4 justify-center lg:justify-start mb-8">
-              <Button variant="hero" size="xl" asChild>
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center lg:justify-start mb-6 sm:mb-8 px-4 sm:px-0">
+              <Button variant="hero" size="xl" className="w-full sm:w-auto" asChild>
                 <a href={resumeUrl || "#"} download target="_blank" rel="noopener noreferrer">
-                  <Download className="w-5 h-5" />
+                  <Download className="w-4 h-4 sm:w-5 sm:h-5" />
                   Download Resume
                 </a>
               </Button>
-              <Button variant="outline" size="xl" asChild>
+              <Button variant="outline" size="xl" className="w-full sm:w-auto" asChild>
                 <a href="#contact">
                   Contact Me
                 </a>
@@ -90,28 +90,28 @@ const HeroSection = () => {
             </div>
 
             {/* Social Links */}
-            <div className="flex gap-4 justify-center lg:justify-start">
+            <div className="flex gap-3 sm:gap-4 justify-center lg:justify-start">
               <a
                 href="https://linkedin.com/in/prudhvirajchalapaka"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-12 h-12 rounded-full bg-card border border-border flex items-center justify-center hover:border-primary hover:text-primary transition-all duration-300 hover:shadow-glow"
+                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-card border border-border flex items-center justify-center hover:border-primary hover:text-primary transition-all duration-300 hover:shadow-glow"
               >
-                <Linkedin className="w-5 h-5" />
+                <Linkedin className="w-4 h-4 sm:w-5 sm:h-5" />
               </a>
               <a
                 href="https://github.com/prudhvirajchalapaka"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-12 h-12 rounded-full bg-card border border-border flex items-center justify-center hover:border-primary hover:text-primary transition-all duration-300 hover:shadow-glow"
+                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-card border border-border flex items-center justify-center hover:border-primary hover:text-primary transition-all duration-300 hover:shadow-glow"
               >
-                <Github className="w-5 h-5" />
+                <Github className="w-4 h-4 sm:w-5 sm:h-5" />
               </a>
               <a
                 href="mailto:me@prudhvirajchalapaka.in"
-                className="w-12 h-12 rounded-full bg-card border border-border flex items-center justify-center hover:border-primary hover:text-primary transition-all duration-300 hover:shadow-glow"
+                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-card border border-border flex items-center justify-center hover:border-primary hover:text-primary transition-all duration-300 hover:shadow-glow"
               >
-                <Mail className="w-5 h-5" />
+                <Mail className="w-4 h-4 sm:w-5 sm:h-5" />
               </a>
             </div>
           </div>
@@ -119,10 +119,10 @@ const HeroSection = () => {
       </div>
 
       {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
-        <span className="text-muted-foreground text-xs font-mono">Scroll</span>
-        <div className="w-6 h-10 rounded-full border-2 border-muted-foreground/30 flex justify-center pt-2">
-          <div className="w-1 h-3 bg-primary rounded-full animate-pulse" />
+      <div className="absolute bottom-4 sm:bottom-6 lg:bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 sm:gap-2 animate-bounce">
+        <span className="text-muted-foreground text-[10px] sm:text-xs font-mono">Scroll</span>
+        <div className="w-5 h-8 sm:w-6 sm:h-10 rounded-full border-2 border-muted-foreground/30 flex justify-center pt-1.5 sm:pt-2">
+          <div className="w-0.5 sm:w-1 h-2 sm:h-3 bg-primary rounded-full animate-pulse" />
         </div>
       </div>
     </section>
