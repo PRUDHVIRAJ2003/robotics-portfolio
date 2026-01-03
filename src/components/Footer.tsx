@@ -40,6 +40,15 @@ const Footer = () => {
           throw dbError;
         }
       } else {
+        // Send welcome email via edge function
+        try {
+          await supabase.functions.invoke("send-welcome-email", {
+            body: { email: result.data },
+          });
+        } catch (emailError) {
+          console.error("Welcome email error:", emailError);
+          // Don't fail subscription if email fails
+        }
         toast.success("Thank you for subscribing!");
       }
       setEmail("");
