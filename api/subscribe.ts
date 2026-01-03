@@ -69,7 +69,7 @@ export default async function handler(request, response) {
                             </table>
                             <hr class="divider" style="width:100%;border:none;border-top:1px solid #eaeaea;padding-bottom:1em;border-width:2px" />
                             <p style="margin:0;padding:0;font-size:1em;padding-top:0.5em;padding-bottom:0.5em">
-                              <span>Thanks for subscribing to my newsletter, This newsletter will update you with my latest Projects and Publication i have done. hope you enjoy learning new things. Lets Contribute a meaningful the Society through Robotics And Its technologies</span>
+                              <span>Thanks for subscribing to my newsletter, This newsletter will update you with my latest Projects and Publication i have done. hope you enjoy learning new things. Lets Contribute a meaningful to the Society through Robotics And Its technologies</span>
                             </p>
                             <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" class="node-footer" style="font-size:0.8em">
                               <tbody>
