@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number | null
+          icon_type: string | null
+          id: string
+          is_published: boolean | null
+          link: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          icon_type?: string | null
+          id?: string
+          is_published?: boolean | null
+          link?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          icon_type?: string | null
+          id?: string
+          is_published?: boolean | null
+          link?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       admin_settings: {
         Row: {
           created_at: string
@@ -35,6 +71,45 @@ export type Database = {
           setting_key?: string
           setting_value?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      certifications: {
+        Row: {
+          created_at: string
+          display_order: number | null
+          id: string
+          image: string | null
+          is_published: boolean | null
+          issue_date: string | null
+          issuer: string
+          title: string
+          updated_at: string
+          verification_link: string | null
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          image?: string | null
+          is_published?: boolean | null
+          issue_date?: string | null
+          issuer: string
+          title: string
+          updated_at?: string
+          verification_link?: string | null
+        }
+        Update: {
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          image?: string | null
+          is_published?: boolean | null
+          issue_date?: string | null
+          issuer?: string
+          title?: string
+          updated_at?: string
+          verification_link?: string | null
         }
         Relationships: []
       }
@@ -62,6 +137,84 @@ export type Database = {
           is_read?: boolean | null
           message?: string
           name?: string
+        }
+        Relationships: []
+      }
+      education: {
+        Row: {
+          certificate_link: string | null
+          created_at: string
+          degree: string
+          display_order: number | null
+          grade: string | null
+          id: string
+          institution: string
+          is_published: boolean | null
+          period: string
+          updated_at: string
+        }
+        Insert: {
+          certificate_link?: string | null
+          created_at?: string
+          degree: string
+          display_order?: number | null
+          grade?: string | null
+          id?: string
+          institution: string
+          is_published?: boolean | null
+          period: string
+          updated_at?: string
+        }
+        Update: {
+          certificate_link?: string | null
+          created_at?: string
+          degree?: string
+          display_order?: number | null
+          grade?: string | null
+          id?: string
+          institution?: string
+          is_published?: boolean | null
+          period?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      experiences: {
+        Row: {
+          certificate_link: string | null
+          company: string
+          created_at: string
+          display_order: number | null
+          id: string
+          is_published: boolean | null
+          period: string
+          responsibilities: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          certificate_link?: string | null
+          company: string
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_published?: boolean | null
+          period: string
+          responsibilities?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          certificate_link?: string | null
+          company?: string
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_published?: boolean | null
+          period?: string
+          responsibilities?: string[] | null
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }

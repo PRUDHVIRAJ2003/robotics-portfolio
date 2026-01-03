@@ -1,39 +1,55 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import AnimateOnScroll from "@/components/AnimateOnScroll";
-import { Briefcase, Calendar } from "lucide-react";
+import { Briefcase, Calendar, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-const experienceData = [
-  {
-    title: "Robotics Engineer Intern",
-    company: "Karthikesh Robotics Private Limited",
-    period: "05/2025 – 11/2025",
-    responsibilities: [
-      "Developed Autonomous Mobile Robots",
-      "Worked on ROS2 and Visualization tools",
-      "Implemented different Path Planning Algorithms for Arms and Mobile robots",
-    ],
-  },
-  {
-    title: "Teaching Assistantship Intern",
-    company: "Vignan's Foundation for Science Technology & Research University",
-    period: "01/2025 – 04/2025",
-    responsibilities: [
-      "Taught Students about ROS in Practical Sessions",
-      "Worked on a Research Project Based on autonomous Robot",
-      "Helped Students in the Robot Mechanisms, Kinematical & Dynamical Analysis",
-    ],
-  },
-  {
-    title: "ROS Intern",
-    company: "Karthikesh Robotics Private Limited",
-    period: "01/2025 – 02/2025",
-    responsibilities: [
-      "Worked with the ROS2 Framework",
-      "Learned Docker & GUI for ROS2",
-    ],
-  },
-];
+interface Experience {
+  id: string;
+  title: string;
+  company: string;
+  period: string;
+  responsibilities: string[];
+  certificate_link: string | null;
+}
 
 const ExperienceSection = () => {
+  const [experienceData, setExperienceData] = useState<Experience[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchExperiences = async () => {
+      const { data, error } = await supabase
+        .from("experiences")
+        .select("*")
+        .eq("is_published", true)
+        .order("display_order", { ascending: true });
+
+      if (!error && data) {
+        setExperienceData(data);
+      }
+      setLoading(false);
+    };
+
+    fetchExperiences();
+  }, []);
+
+  if (loading) {
+    return (
+      <section id="experience" className="py-20 bg-background relative overflow-hidden">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (experienceData.length === 0) {
+    return null;
+  }
+
   return (
     <section id="experience" className="py-20 bg-background relative overflow-hidden">
       <div className="absolute inset-0 circuit-pattern opacity-10" />
@@ -52,7 +68,7 @@ const ExperienceSection = () => {
 
         <div className="max-w-4xl mx-auto space-y-8">
           {experienceData.map((exp, index) => (
-            <AnimateOnScroll key={index} animation="fade-up" delay={index * 150}>
+            <AnimateOnScroll key={exp.id} animation="fade-up" delay={index * 150}>
               <div className="relative pl-8 border-l-2 border-primary/30 hover:border-primary transition-colors duration-300">
                 <div className="absolute left-0 top-0 w-4 h-4 -translate-x-1/2 rounded-full bg-primary shadow-glow" />
                 
@@ -73,14 +89,25 @@ const ExperienceSection = () => {
                     </div>
                   </div>
                   
-                  <ul className="space-y-2">
-                    {exp.responsibilities.map((resp, idx) => (
-                      <li key={idx} className="flex items-start gap-3 text-muted-foreground">
-                        <div className="w-2 h-2 rounded-full bg-secondary mt-2 flex-shrink-0" />
-                        {resp}
-                      </li>
-                    ))}
-                  </ul>
+                  {exp.responsibilities && exp.responsibilities.length > 0 && (
+                    <ul className="space-y-2 mb-4">
+                      {exp.responsibilities.map((resp, idx) => (
+                        <li key={idx} className="flex items-start gap-3 text-muted-foreground">
+                          <div className="w-2 h-2 rounded-full bg-secondary mt-2 flex-shrink-0" />
+                          {resp}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  
+                  {exp.certificate_link && (
+                    <Button variant="outline" size="sm" asChild>
+                      <a href={exp.certificate_link} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="w-3 h-3 mr-2" />
+                        View Certificate
+                      </a>
+                    </Button>
+                  )}
                 </div>
               </div>
             </AnimateOnScroll>
