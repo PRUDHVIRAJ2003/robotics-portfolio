@@ -42,41 +42,51 @@ const EducationSection = () => {
           </div>
         </AnimateOnScroll>
 
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto px-2 sm:px-0">
           <div className="relative">
-            <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary via-secondary to-accent" />
+            {/* Timeline line - hidden on mobile, centered on larger screens */}
+            <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary via-secondary to-accent -translate-x-1/2" />
 
             {educationData.map((edu, index) => (
               <AnimateOnScroll
                 key={index}
-                animation={index % 2 === 0 ? "fade-right" : "fade-left"}
+                animation="fade-up"
                 delay={index * 150}
               >
                 <div
-                  className={`relative flex items-center gap-8 mb-12 ${
+                  className={`relative flex items-center mb-8 md:mb-12 ${
                     index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
                   }`}
                 >
-                  <div className="absolute left-8 md:left-1/2 w-4 h-4 -translate-x-1/2 rounded-full bg-primary shadow-glow z-10" />
+                  {/* Timeline dot - hidden on mobile */}
+                  <div className="hidden md:block absolute left-1/2 w-4 h-4 -translate-x-1/2 rounded-full bg-primary shadow-glow z-10" />
 
+                  {/* Card container */}
                   <div
-                    className={`ml-16 md:ml-0 md:w-[calc(50%-2rem)] ${
-                      index % 2 === 0 ? "md:pr-12 md:text-right" : "md:pl-12"
+                    className={`w-full md:w-[calc(50%-2rem)] ${
+                      index % 2 === 0 ? "md:pr-8 lg:pr-12 md:text-right" : "md:pl-8 lg:pl-12"
                     }`}
                   >
-                    <div className="bg-background rounded-xl p-6 shadow-card hover:shadow-elevated transition-all duration-300 border border-border hover:border-primary/30 group">
-                      <div className={`flex items-center gap-3 mb-3 ${index % 2 === 0 ? "md:justify-end" : ""}`}>
-                        <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center group-hover:shadow-glow transition-all duration-300">
-                          <edu.icon className="w-5 h-5 text-primary-foreground" />
+                    <div className="bg-background rounded-xl p-4 sm:p-5 lg:p-6 shadow-card hover:shadow-elevated transition-all duration-300 border border-border hover:border-primary/30 group">
+                      {/* Header with icon and period */}
+                      <div className={`flex items-center gap-2 sm:gap-3 mb-3 flex-wrap ${index % 2 === 0 ? "md:justify-end" : ""}`}>
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg gradient-primary flex items-center justify-center group-hover:shadow-glow transition-all duration-300 flex-shrink-0">
+                          <edu.icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
                         </div>
-                        <span className="text-primary font-mono text-sm">{edu.period}</span>
+                        <span className="text-primary font-mono text-xs sm:text-sm">{edu.period}</span>
                       </div>
-                      <h3 className="text-xl font-bold mb-2">{edu.degree}</h3>
-                      <p className="text-muted-foreground flex items-center gap-2 mb-2 text-sm">
-                        <MapPin className="w-4 h-4" />
-                        {edu.institution}
+                      
+                      {/* Degree title */}
+                      <h3 className="text-base sm:text-lg lg:text-xl font-bold mb-2 leading-tight">{edu.degree}</h3>
+                      
+                      {/* Institution */}
+                      <p className={`text-muted-foreground flex items-center gap-2 mb-2 text-xs sm:text-sm ${index % 2 === 0 ? "md:justify-end" : ""}`}>
+                        <MapPin className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                        <span className="break-words">{edu.institution}</span>
                       </p>
-                      <p className="text-primary font-semibold">{edu.grade}</p>
+                      
+                      {/* Grade */}
+                      <p className="text-primary font-semibold text-sm sm:text-base">{edu.grade}</p>
                     </div>
                   </div>
                 </div>
