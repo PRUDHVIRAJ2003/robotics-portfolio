@@ -29,29 +29,43 @@ const Footer = () => {
     setIsSubscribing(true);
     
     try {
+      // 1. Add to Database
       const { error: dbError } = await supabase
         .from("newsletter_subscribers")
         .insert({ email: result.data });
       
       if (dbError) {
-        if (dbError.code === "23505") {
+        if (dbError.code === "23505") { // Unique violation code
           toast.info("You're already subscribed!");
+          setIsSubscribing(false);
+          return; // Stop here if duplicate
         } else {
           throw dbError;
         }
-      } else {
-        // Send welcome email via edge function
-        try {
-          await supabase.functions.invoke("send-welcome-email", {
-            body: { email: result.data },
-          });
-        } catch (emailError) {
-          console.error("Welcome email error:", emailError);
-          // Don't fail subscription if email fails
+      } 
+      
+      // 2. Send Welcome Email via Vercel API
+      try {
+        const response = await fetch('/api/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          // FIXED: Changed 'email_variable_name' to 'result.data'
+          body: JSON.stringify({ email: result.data }), 
+        });
+
+        if (!response.ok) {
+            // Optional: Log technical details but don't crash the UI for the user
+            console.error('Email sending failed:', await response.text());
         }
-        toast.success("Thank you for subscribing!");
+      } catch (emailError) {
+        console.error("Welcome email error:", emailError);
+        // We generally don't show an error to the user if only the email failed 
+        // but the subscription succeeded.
       }
+
+      toast.success("Thank you for subscribing!");
       setEmail("");
+      
     } catch (err) {
       console.error("Subscription error:", err);
       toast.error("Failed to subscribe. Please try again.");
