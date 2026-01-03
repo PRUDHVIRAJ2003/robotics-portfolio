@@ -12,7 +12,7 @@ export default async function handler(request, response) {
   try {
     // 1. Send the email via Resend
     const { data, error } = await resend.emails.send({
-      from: 'Newsletter <hello@yourdomain.com>', // CHANGE THIS to your verified domain email
+      from: 'Newsletter <newsletter@prudhvirajchalapaka.in>', // CHANGE THIS to your verified domain email
       to: [email],
       subject: 'Welcome to the Newsletter!',
       html: '<h1>Welcome!</h1><p>Thanks for subscribing to our newsletter.</p>',
