@@ -17,18 +17,36 @@ import EducationManager from "@/components/admin/EducationManager";
 import ExperiencesManager from "@/components/admin/ExperiencesManager";
 import CertificationsManager from "@/components/admin/CertificationsManager";
 import AchievementsManager from "@/components/admin/AchievementsManager";
-import { Lock, LogOut, FolderOpen, BookOpen, Mail, Settings, Home, LayoutDashboard, FileText, Users, GraduationCap, Briefcase, Award, Trophy, Loader2, ShieldAlert } from "lucide-react";
+import InviteCodesManager from "@/components/admin/InviteCodesManager";
+import { Lock, LogOut, FolderOpen, BookOpen, Mail, Settings, Home, LayoutDashboard, FileText, Users, GraduationCap, Briefcase, Award, Trophy, Loader2, ShieldAlert, KeyRound, UserPlus, ArrowLeft } from "lucide-react";
+import { z } from "zod";
 
-type Tab = "dashboard" | "projects" | "publications" | "messages" | "resume" | "subscribers" | "settings" | "education" | "experiences" | "certifications" | "achievements";
+type Tab = "dashboard" | "projects" | "publications" | "messages" | "resume" | "subscribers" | "settings" | "education" | "experiences" | "certifications" | "achievements" | "invite-codes";
+type AuthView = "login" | "signup" | "forgot-password" | "reset-password";
+
+const emailSchema = z.string().trim().email("Invalid email address").max(255, "Email too long");
+const passwordSchema = z.string().min(6, "Password must be at least 6 characters").max(72, "Password too long");
+const inviteCodeSchema = z.string().trim().min(1, "Invite code is required");
 
 const Admin = () => {
-  const { user, isAdmin, loading: authLoading, signIn, signOut } = useAdminAuth();
+  const { user, isAdmin, loading: authLoading, signIn, signUp, signOut, resetPassword, updatePassword } = useAdminAuth();
+  const [authView, setAuthView] = useState<AuthView>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loginLoading, setLoginLoading] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
+  const [formLoading, setFormLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const [stats, setStats] = useState({ projects: 0, publications: 0, messages: 0, unread: 0, subscribers: 0, education: 0, experiences: 0, certifications: 0, achievements: 0 });
   const { toast } = useToast();
+
+  // Check if we're in password reset mode (from email link)
+  useEffect(() => {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    if (hashParams.get("type") === "recovery") {
+      setAuthView("reset-password");
+    }
+  }, []);
 
   useEffect(() => {
     if (isAdmin) {
@@ -63,12 +81,17 @@ const Admin = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email.trim() || !password.trim()) {
-      toast({ title: "Error", description: "Please enter email and password", variant: "destructive" });
-      return;
+    try {
+      emailSchema.parse(email);
+      passwordSchema.parse(password);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        toast({ title: "Validation Error", description: err.errors[0].message, variant: "destructive" });
+        return;
+      }
     }
 
-    setLoginLoading(true);
+    setFormLoading(true);
     const { error } = await signIn(email, password);
     
     if (error) {
@@ -76,13 +99,105 @@ const Admin = () => {
     } else {
       toast({ title: "Welcome!", description: "Successfully logged in" });
     }
-    setLoginLoading(false);
+    setFormLoading(false);
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      emailSchema.parse(email);
+      passwordSchema.parse(password);
+      inviteCodeSchema.parse(inviteCode);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        toast({ title: "Validation Error", description: err.errors[0].message, variant: "destructive" });
+        return;
+      }
+    }
+
+    if (password !== confirmPassword) {
+      toast({ title: "Error", description: "Passwords do not match", variant: "destructive" });
+      return;
+    }
+
+    setFormLoading(true);
+    const { error } = await signUp(email, password, inviteCode);
+    
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Success!", description: "Admin account created successfully" });
+      setAuthView("login");
+    }
+    setFormLoading(false);
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      emailSchema.parse(email);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        toast({ title: "Validation Error", description: err.errors[0].message, variant: "destructive" });
+        return;
+      }
+    }
+
+    setFormLoading(true);
+    const { error } = await resetPassword(email);
+    
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Email Sent", description: "Check your email for password reset instructions" });
+      setAuthView("login");
+    }
+    setFormLoading(false);
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      passwordSchema.parse(password);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        toast({ title: "Validation Error", description: err.errors[0].message, variant: "destructive" });
+        return;
+      }
+    }
+
+    if (password !== confirmPassword) {
+      toast({ title: "Error", description: "Passwords do not match", variant: "destructive" });
+      return;
+    }
+
+    setFormLoading(true);
+    const { error } = await updatePassword(password);
+    
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Success!", description: "Password updated successfully" });
+      window.location.hash = "";
+      setAuthView("login");
+    }
+    setFormLoading(false);
   };
 
   const handleLogout = async () => {
     await signOut();
     setActiveTab("dashboard");
     toast({ title: "Logged out", description: "You have been logged out" });
+  };
+
+  const resetForm = () => {
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setInviteCode("");
   };
 
   // Loading state
@@ -94,56 +209,243 @@ const Admin = () => {
     );
   }
 
-  // Not logged in - show login form
-  if (!user) {
+  // Not logged in - show auth forms
+  if (!user || authView === "reset-password") {
     return (
       <div className="min-h-screen gradient-hero flex items-center justify-center p-4">
         <div className="absolute top-4 right-4"><ThemeToggle /></div>
         <div className="bg-card rounded-xl p-8 shadow-elevated border border-border max-w-md w-full">
-          <div className="text-center mb-6">
-            <div className="w-16 h-16 mx-auto rounded-full gradient-primary flex items-center justify-center shadow-glow mb-4">
-              <Lock className="w-8 h-8 text-primary-foreground" />
-            </div>
-            <h1 className="text-2xl font-bold">Admin Panel</h1>
-            <p className="text-muted-foreground text-sm">Sign in to manage your portfolio</p>
-          </div>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input 
-                id="email"
-                type="email" 
-                placeholder="admin@example.com" 
-                value={email} 
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input 
-                id="password"
-                type="password" 
-                placeholder="••••••••" 
-                value={password} 
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-              />
-            </div>
-            <Button type="submit" variant="hero" className="w-full" disabled={loginLoading}>
-              {loginLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                "Sign In"
-              )}
-            </Button>
-          </form>
-          <div className="mt-4 text-center">
-            <Link to="/" className="text-sm text-muted-foreground hover:text-primary">← Back to website</Link>
-          </div>
+          {/* Login View */}
+          {authView === "login" && (
+            <>
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 mx-auto rounded-full gradient-primary flex items-center justify-center shadow-glow mb-4">
+                  <Lock className="w-8 h-8 text-primary-foreground" />
+                </div>
+                <h1 className="text-2xl font-bold">Admin Panel</h1>
+                <p className="text-muted-foreground text-sm">Sign in to manage your portfolio</p>
+              </div>
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input 
+                    id="email"
+                    type="email" 
+                    placeholder="admin@example.com" 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input 
+                    id="password"
+                    type="password" 
+                    placeholder="••••••••" 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="current-password"
+                  />
+                </div>
+                <Button type="submit" variant="hero" className="w-full" disabled={formLoading}>
+                  {formLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Signing in...
+                    </>
+                  ) : (
+                    "Sign In"
+                  )}
+                </Button>
+              </form>
+              <div className="mt-4 flex flex-col gap-2 text-center">
+                <button 
+                  onClick={() => { resetForm(); setAuthView("forgot-password"); }}
+                  className="text-sm text-muted-foreground hover:text-primary"
+                >
+                  Forgot password?
+                </button>
+                <button 
+                  onClick={() => { resetForm(); setAuthView("signup"); }}
+                  className="text-sm text-primary hover:underline flex items-center justify-center gap-1"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  Register with invite code
+                </button>
+                <Link to="/" className="text-sm text-muted-foreground hover:text-primary">← Back to website</Link>
+              </div>
+            </>
+          )}
+
+          {/* Signup View */}
+          {authView === "signup" && (
+            <>
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 mx-auto rounded-full gradient-primary flex items-center justify-center shadow-glow mb-4">
+                  <UserPlus className="w-8 h-8 text-primary-foreground" />
+                </div>
+                <h1 className="text-2xl font-bold">Create Admin Account</h1>
+                <p className="text-muted-foreground text-sm">Enter your invite code to register</p>
+              </div>
+              <form onSubmit={handleSignup} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="invite-code">Invite Code</Label>
+                  <Input 
+                    id="invite-code"
+                    type="text" 
+                    placeholder="XXXX-XXXX-XXXX" 
+                    value={inviteCode} 
+                    onChange={(e) => setInviteCode(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-email">Email</Label>
+                  <Input 
+                    id="signup-email"
+                    type="email" 
+                    placeholder="admin@example.com" 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-password">Password</Label>
+                  <Input 
+                    id="signup-password"
+                    type="password" 
+                    placeholder="••••••••" 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="new-password"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password">Confirm Password</Label>
+                  <Input 
+                    id="confirm-password"
+                    type="password" 
+                    placeholder="••••••••" 
+                    value={confirmPassword} 
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    autoComplete="new-password"
+                  />
+                </div>
+                <Button type="submit" variant="hero" className="w-full" disabled={formLoading}>
+                  {formLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Creating account...
+                    </>
+                  ) : (
+                    "Create Account"
+                  )}
+                </Button>
+              </form>
+              <div className="mt-4 text-center">
+                <button 
+                  onClick={() => { resetForm(); setAuthView("login"); }}
+                  className="text-sm text-muted-foreground hover:text-primary flex items-center justify-center gap-1 mx-auto"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to login
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* Forgot Password View */}
+          {authView === "forgot-password" && (
+            <>
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 mx-auto rounded-full gradient-primary flex items-center justify-center shadow-glow mb-4">
+                  <KeyRound className="w-8 h-8 text-primary-foreground" />
+                </div>
+                <h1 className="text-2xl font-bold">Reset Password</h1>
+                <p className="text-muted-foreground text-sm">Enter your email to receive reset instructions</p>
+              </div>
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="reset-email">Email</Label>
+                  <Input 
+                    id="reset-email"
+                    type="email" 
+                    placeholder="admin@example.com" 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                  />
+                </div>
+                <Button type="submit" variant="hero" className="w-full" disabled={formLoading}>
+                  {formLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    "Send Reset Link"
+                  )}
+                </Button>
+              </form>
+              <div className="mt-4 text-center">
+                <button 
+                  onClick={() => { resetForm(); setAuthView("login"); }}
+                  className="text-sm text-muted-foreground hover:text-primary flex items-center justify-center gap-1 mx-auto"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to login
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* Reset Password View (after clicking email link) */}
+          {authView === "reset-password" && (
+            <>
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 mx-auto rounded-full gradient-primary flex items-center justify-center shadow-glow mb-4">
+                  <KeyRound className="w-8 h-8 text-primary-foreground" />
+                </div>
+                <h1 className="text-2xl font-bold">Set New Password</h1>
+                <p className="text-muted-foreground text-sm">Enter your new password</p>
+              </div>
+              <form onSubmit={handleResetPassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="new-password">New Password</Label>
+                  <Input 
+                    id="new-password"
+                    type="password" 
+                    placeholder="••••••••" 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="new-password"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-new-password">Confirm New Password</Label>
+                  <Input 
+                    id="confirm-new-password"
+                    type="password" 
+                    placeholder="••••••••" 
+                    value={confirmPassword} 
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    autoComplete="new-password"
+                  />
+                </div>
+                <Button type="submit" variant="hero" className="w-full" disabled={formLoading}>
+                  {formLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    "Update Password"
+                  )}
+                </Button>
+              </form>
+            </>
+          )}
         </div>
       </div>
     );
@@ -190,6 +492,7 @@ const Admin = () => {
     { id: "messages" as Tab, label: "Messages", icon: Mail, count: stats.unread },
     { id: "subscribers" as Tab, label: "Subscribers", icon: Users, count: stats.subscribers },
     { id: "resume" as Tab, label: "Resume", icon: FileText },
+    { id: "invite-codes" as Tab, label: "Invite Codes", icon: KeyRound },
     { id: "settings" as Tab, label: "Settings", icon: Settings },
   ];
 
@@ -302,6 +605,7 @@ const Admin = () => {
         {activeTab === "messages" && <MessagesManager />}
         {activeTab === "subscribers" && <SubscribersManager />}
         {activeTab === "resume" && <ResumeManager />}
+        {activeTab === "invite-codes" && <InviteCodesManager />}
         {activeTab === "settings" && <SettingsManager />}
       </main>
     </div>
