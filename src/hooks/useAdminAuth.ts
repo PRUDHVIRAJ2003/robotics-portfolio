@@ -72,14 +72,62 @@ export const useAdminAuth = () => {
     return { error };
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, inviteCode: string) => {
+    // First validate the invite code exists
+    const { data: codeData, error: codeError } = await supabase
+      .from("invite_codes")
+      .select("id")
+      .eq("code", inviteCode)
+      .maybeSingle();
+
+    if (codeError || !codeData) {
+      return { error: { message: "Invalid or expired invite code" } };
+    }
+
     const redirectUrl = `${window.location.origin}/admin`;
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl,
       },
+    });
+
+    if (error) {
+      return { error };
+    }
+
+    // Use the invite code to assign admin role
+    if (data.user) {
+      const { data: result, error: rpcError } = await supabase.rpc("use_invite_code", {
+        p_code: inviteCode,
+        p_user_id: data.user.id,
+      });
+
+      if (rpcError) {
+        console.error("Error using invite code:", rpcError);
+        return { error: { message: "Failed to activate admin privileges" } };
+      }
+
+      if (!result) {
+        return { error: { message: "Invite code is no longer valid" } };
+      }
+    }
+
+    return { error: null };
+  };
+
+  const resetPassword = async (email: string) => {
+    const redirectUrl = `${window.location.origin}/admin`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectUrl,
+    });
+    return { error };
+  };
+
+  const updatePassword = async (newPassword: string) => {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
     });
     return { error };
   };
@@ -99,5 +147,7 @@ export const useAdminAuth = () => {
     signIn,
     signUp,
     signOut,
+    resetPassword,
+    updatePassword,
   };
 };
