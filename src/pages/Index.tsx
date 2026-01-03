@@ -10,6 +10,7 @@ import AchievementsSection from "@/components/AchievementsSection";
 import PublicationsSection from "@/components/PublicationsSection";
 import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
+import BackToTop from "@/components/BackToTop";
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -31,6 +32,7 @@ const Index = () => {
           <ContactSection />
         </main>
         <Footer />
+        <BackToTop />
       </div>
     </>
   );

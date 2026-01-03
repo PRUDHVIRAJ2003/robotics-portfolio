@@ -1,28 +1,54 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Github, Linkedin, Mail, Heart, Send } from "lucide-react";
+import { Github, Linkedin, Mail, Heart, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
+
+const emailSchema = z.string().trim().email({ message: "Please enter a valid email address" }).max(255, { message: "Email must be less than 255 characters" });
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
   const [email, setEmail] = useState("");
   const [isSubscribing, setIsSubscribing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) {
-      toast.error("Please enter your email address");
+    setError(null);
+    
+    // Validate email
+    const result = emailSchema.safeParse(email);
+    if (!result.success) {
+      setError(result.error.errors[0].message);
       return;
     }
     
     setIsSubscribing(true);
-    // Simulate subscription
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    toast.success("Thank you for subscribing!");
-    setEmail("");
-    setIsSubscribing(false);
+    
+    try {
+      const { error: dbError } = await supabase
+        .from("newsletter_subscribers")
+        .insert({ email: result.data });
+      
+      if (dbError) {
+        if (dbError.code === "23505") {
+          toast.info("You're already subscribed!");
+        } else {
+          throw dbError;
+        }
+      } else {
+        toast.success("Thank you for subscribing!");
+      }
+      setEmail("");
+    } catch (err) {
+      console.error("Subscription error:", err);
+      toast.error("Failed to subscribe. Please try again.");
+    } finally {
+      setIsSubscribing(false);
+    }
   };
 
   return (
@@ -80,20 +106,33 @@ const Footer = () => {
             <p className="text-muted-foreground text-sm mb-4">
               Subscribe to get updates on my latest projects and publications.
             </p>
-            <form onSubmit={handleNewsletterSubmit} className="flex gap-2 mb-6 max-w-sm mx-auto sm:mx-0">
-              <Input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1"
-              />
-              <Button type="submit" size="icon" disabled={isSubscribing}>
-                <Send className="w-4 h-4" />
-              </Button>
+            <form onSubmit={handleNewsletterSubmit} className="max-w-sm mx-auto sm:mx-0">
+              <div className="flex gap-2">
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setError(null);
+                  }}
+                  className={`flex-1 ${error ? "border-destructive" : ""}`}
+                  disabled={isSubscribing}
+                />
+                <Button type="submit" size="icon" disabled={isSubscribing}>
+                  {isSubscribing ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
+              {error && (
+                <p className="text-destructive text-xs mt-1.5 text-left">{error}</p>
+              )}
             </form>
             
-            <h4 className="font-bold mb-3">Connect</h4>
+            <h4 className="font-bold mb-3 mt-6">Connect</h4>
             <div className="flex gap-3 justify-center sm:justify-start">
               <a
                 href="https://linkedin.com/in/prudhvirajchalapaka"
