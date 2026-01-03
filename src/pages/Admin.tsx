@@ -10,16 +10,17 @@ import PublicationsManager from "@/components/admin/PublicationsManager";
 import MessagesManager from "@/components/admin/MessagesManager";
 import SettingsManager from "@/components/admin/SettingsManager";
 import ResumeManager from "@/components/admin/ResumeManager";
-import { Lock, LogOut, FolderOpen, BookOpen, Mail, Settings, Home, LayoutDashboard, FileText } from "lucide-react";
+import SubscribersManager from "@/components/admin/SubscribersManager";
+import { Lock, LogOut, FolderOpen, BookOpen, Mail, Settings, Home, LayoutDashboard, FileText, Users } from "lucide-react";
 
-type Tab = "dashboard" | "projects" | "publications" | "messages" | "resume" | "settings";
+type Tab = "dashboard" | "projects" | "publications" | "messages" | "resume" | "subscribers" | "settings";
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
-  const [stats, setStats] = useState({ projects: 0, publications: 0, messages: 0, unread: 0 });
+  const [stats, setStats] = useState({ projects: 0, publications: 0, messages: 0, unread: 0, subscribers: 0 });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -30,16 +31,18 @@ const Admin = () => {
   }, []);
 
   const fetchStats = async () => {
-    const [projectsRes, pubsRes, msgsRes] = await Promise.all([
+    const [projectsRes, pubsRes, msgsRes, subsRes] = await Promise.all([
       supabase.from("projects").select("id", { count: "exact" }),
       supabase.from("publications").select("id", { count: "exact" }),
       supabase.from("contact_submissions").select("id, is_read"),
+      supabase.from("newsletter_subscribers").select("id", { count: "exact" }),
     ]);
     setStats({
       projects: projectsRes.count || 0,
       publications: pubsRes.count || 0,
       messages: msgsRes.data?.length || 0,
       unread: msgsRes.data?.filter((m) => !m.is_read).length || 0,
+      subscribers: subsRes.count || 0,
     });
   };
 
@@ -95,6 +98,7 @@ const Admin = () => {
     { id: "projects" as Tab, label: "Projects", icon: FolderOpen, count: stats.projects },
     { id: "publications" as Tab, label: "Publications", icon: BookOpen, count: stats.publications },
     { id: "messages" as Tab, label: "Messages", icon: Mail, count: stats.unread },
+    { id: "subscribers" as Tab, label: "Subscribers", icon: Users, count: stats.subscribers },
     { id: "resume" as Tab, label: "Resume", icon: FileText },
     { id: "settings" as Tab, label: "Settings", icon: Settings },
   ];
@@ -155,7 +159,7 @@ const Admin = () => {
         {activeTab === "dashboard" && (
           <div className="space-y-8">
             <h2 className="text-3xl font-bold">Welcome back!</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <button onClick={() => setActiveTab("projects")} className="bg-card rounded-xl p-6 border border-border hover:border-primary/30 transition-all text-left group">
                 <FolderOpen className="w-10 h-10 text-primary mb-4 group-hover:scale-110 transition-transform" />
                 <h3 className="font-bold text-2xl">{stats.projects}</h3>
@@ -171,12 +175,18 @@ const Admin = () => {
                 <h3 className="font-bold text-2xl">{stats.messages}</h3>
                 <p className="text-muted-foreground">Messages ({stats.unread} unread)</p>
               </button>
+              <button onClick={() => setActiveTab("subscribers")} className="bg-card rounded-xl p-6 border border-border hover:border-primary/30 transition-all text-left group">
+                <Users className="w-10 h-10 text-primary mb-4 group-hover:scale-110 transition-transform" />
+                <h3 className="font-bold text-2xl">{stats.subscribers}</h3>
+                <p className="text-muted-foreground">Subscribers</p>
+              </button>
             </div>
           </div>
         )}
         {activeTab === "projects" && <ProjectsManager />}
         {activeTab === "publications" && <PublicationsManager />}
         {activeTab === "messages" && <MessagesManager />}
+        {activeTab === "subscribers" && <SubscribersManager />}
         {activeTab === "resume" && <ResumeManager />}
         {activeTab === "settings" && <SettingsManager />}
       </main>
