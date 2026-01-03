@@ -1,31 +1,55 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import AnimateOnScroll from "@/components/AnimateOnScroll";
-import { GraduationCap, MapPin } from "lucide-react";
+import { GraduationCap, MapPin, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-const educationData = [
-  {
-    degree: "B. Tech, Robotics & Automation",
-    institution: "Vignan's University, Guntur",
-    period: "2021 – 2025",
-    grade: "CGPA: 7.62 / 10",
-    icon: GraduationCap,
-  },
-  {
-    degree: "Intermediate, MPC",
-    institution: "Nri Junior College, Tenali",
-    period: "2019 – 2021",
-    grade: "Marks: 804 / 1000",
-    icon: GraduationCap,
-  },
-  {
-    degree: "SSC",
-    institution: "Gretnaltes Public School, Duggirala",
-    period: "2018 – 2019",
-    grade: "GPA: 9.2 / 10",
-    icon: GraduationCap,
-  },
-];
+interface Education {
+  id: string;
+  degree: string;
+  institution: string;
+  period: string;
+  grade: string | null;
+  certificate_link: string | null;
+}
 
 const EducationSection = () => {
+  const [educationData, setEducationData] = useState<Education[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchEducation = async () => {
+      const { data, error } = await supabase
+        .from("education")
+        .select("*")
+        .eq("is_published", true)
+        .order("display_order", { ascending: true });
+
+      if (!error && data) {
+        setEducationData(data);
+      }
+      setLoading(false);
+    };
+
+    fetchEducation();
+  }, []);
+
+  if (loading) {
+    return (
+      <section id="education" className="py-20 bg-card relative overflow-hidden">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (educationData.length === 0) {
+    return null;
+  }
+
   return (
     <section id="education" className="py-20 bg-card relative overflow-hidden">
       <div className="absolute inset-0 tech-grid opacity-30" />
@@ -49,7 +73,7 @@ const EducationSection = () => {
 
             {educationData.map((edu, index) => (
               <AnimateOnScroll
-                key={index}
+                key={edu.id}
                 animation="fade-up"
                 delay={index * 150}
               >
@@ -71,7 +95,7 @@ const EducationSection = () => {
                       {/* Header with icon and period */}
                       <div className={`flex items-center gap-2 sm:gap-3 mb-3 flex-wrap ${index % 2 === 0 ? "md:justify-end" : ""}`}>
                         <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg gradient-primary flex items-center justify-center group-hover:shadow-glow transition-all duration-300 flex-shrink-0">
-                          <edu.icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
+                          <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
                         </div>
                         <span className="text-primary font-mono text-xs sm:text-sm">{edu.period}</span>
                       </div>
@@ -86,7 +110,19 @@ const EducationSection = () => {
                       </p>
                       
                       {/* Grade */}
-                      <p className="text-primary font-semibold text-sm sm:text-base">{edu.grade}</p>
+                      {edu.grade && <p className="text-primary font-semibold text-sm sm:text-base">{edu.grade}</p>}
+                      
+                      {/* Certificate Link */}
+                      {edu.certificate_link && (
+                        <div className={`mt-3 ${index % 2 === 0 ? "md:text-right" : ""}`}>
+                          <Button variant="outline" size="sm" asChild>
+                            <a href={edu.certificate_link} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="w-3 h-3 mr-2" />
+                              View Certificate
+                            </a>
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

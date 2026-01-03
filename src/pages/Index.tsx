@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Helmet } from "react-helmet-async"; // <--- Import this
+import { Helmet } from "react-helmet-async";
 import LoadingScreen from "@/components/LoadingScreen";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
@@ -7,6 +7,7 @@ import EducationSection from "@/components/EducationSection";
 import ExperienceSection from "@/components/ExperienceSection";
 import SkillsSection from "@/components/SkillsSection";
 import ProjectsSection from "@/components/ProjectsSection";
+import CertificatesSection from "@/components/CertificatesSection";
 import AchievementsSection from "@/components/AchievementsSection";
 import PublicationsSection from "@/components/PublicationsSection";
 import ContactSection from "@/components/ContactSection";
@@ -72,6 +73,7 @@ const Index = () => {
           <ExperienceSection />
           <SkillsSection />
           <ProjectsSection />
+          <CertificatesSection />
           <AchievementsSection />
           <PublicationsSection />
           <ContactSection />
