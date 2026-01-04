@@ -172,8 +172,8 @@ const ContactSection = () => {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Phone</p>
-                      <a href="tel:+917995511692" className="font-medium hover:text-primary transition-colors">
-                        +91 799 551 1692
+                      <a href="https://wa.me/917995511692" className="font-medium hover:text-primary transition-colors">
+                        My Mobile No
                       </a>
                     </div>
                   </div>
